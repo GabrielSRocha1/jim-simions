@@ -11,39 +11,30 @@ export function calculateIncentives(state: SimulationState): CalculationResult {
   const { investmentUsd, tokenQuantity, tokenPrice, lockTier, marketOptimism, newRoudersPerMonth, ticketPerRouder } = state;
   const config = TIER_CONFIG[lockTier];
   
-  const initialTokens = tokenQuantity > 0 ? tokenQuantity : (tokenPrice > 0 ? investmentUsd / tokenPrice : 0);
+  // Usamos a quantidade de tokens como base de cálculo para o yield
+  const initialTokens = tokenQuantity;
   const lockWeeks = config.weeks;
   const apy = config.apy;
   
-  // Weekly compound rate for tokens
   const periodicRate = Math.pow(1 + (apy / 100), 1 / 52) - 1;
-  
-  // Community Logic: Network Effect
   const weeklyRouderGrowth = newRoudersPerMonth / 4.33;
   const initialHolders = 1000;
-
-  // TVL Impact / Scarcity logic for price floor
   const capitalInfluence = Math.log10(Math.max(investmentUsd, 1) / 5000 + 1) * 0.15;
   
   const timeline: TimelinePoint[] = [];
   let currentTokens = initialTokens;
 
   for (let w = 0; w <= lockWeeks; w++) {
-    // 1. Calculate cumulative capital influx from community
-    // H (Holders/month) converted to weekly influx
     const newHoldersWeekly = (newRoudersPerMonth / 4.33) * w;
     const accumulatedCommunityCapital = newHoldersWeekly * ticketPerRouder;
     
-    // 2. Calculate Token Price at week 'w'
-    // Formula: P_t = P_0 + (CapitalAccumulated_t / S)
-    // We also include Market Optimism and Capital Influence as a "sophistication" multiplier
     const sentimentMultiplier = 1 + (marketOptimism / 100) * 1.5 + capitalInfluence;
-    
-    // Base price from influx
     const basePriceIncrease = initialTokens > 0 ? (accumulatedCommunityCapital / initialTokens) : 0;
     const currentPrice = (tokenPrice + basePriceIncrease) * sentimentMultiplier;
 
     const currentHolders = initialHolders + (weeklyRouderGrowth * w);
+    
+    // Para o gráfico, mantemos a proporção baseada no valor atual
     const principalValue = initialTokens * currentPrice;
     const yieldValue = (currentTokens - initialTokens) * currentPrice;
 
@@ -66,13 +57,24 @@ export function calculateIncentives(state: SimulationState): CalculationResult {
   const projectedPrice = finalResult.tokenPrice;
   const finalTokens = finalResult.tokens;
   const yieldTokens = finalTokens - initialTokens;
-  const totalFutureValue = finalResult.totalValue;
 
+  // Lógica Aditiva Estrita:
+  // 1. O principal inicial é exatamente o que o usuário digitou
   const principalValueInitial = investmentUsd;
-  const appreciationGain = initialTokens * (projectedPrice - tokenPrice);
+  
+  // 2. O ganho de valorização é calculado sobre o capital inicial (ou tokens iniciais x delta preço)
+  // Usamos a variação percentual do preço para garantir que a valorização seja proporcional ao investimento USD
+  const priceGrowthMultiplier = tokenPrice > 0 ? (projectedPrice / tokenPrice) : 1;
+  const principalValueFinal = principalValueInitial * priceGrowthMultiplier;
+  const appreciationGain = principalValueFinal - principalValueInitial;
+
+  // 3. O ganho de yield são os novos tokens valendo o preço projetado
   const yieldGain = yieldTokens * projectedPrice;
 
-  const totalRoiPct = investmentUsd > 0 ? ((totalFutureValue - investmentUsd) / investmentUsd) * 100 : 0;
+  // 4. Valor Total é a soma exata das partes
+  const totalFutureValue = principalValueInitial + appreciationGain + yieldGain;
+
+  const totalRoiPct = principalValueInitial > 0 ? ((totalFutureValue - principalValueInitial) / principalValueInitial) * 100 : 0;
 
   return {
     initialTokens,
@@ -80,8 +82,8 @@ export function calculateIncentives(state: SimulationState): CalculationResult {
     finalTokens,
     projectedPrice,
     principalValueInitial,
-    principalValueFinal: initialTokens * projectedPrice,
-    yieldValueFinal: yieldTokens * projectedPrice,
+    principalValueFinal,
+    yieldValueFinal: yieldGain,
     appreciationGain,
     yieldGain,
     totalFutureValue,
