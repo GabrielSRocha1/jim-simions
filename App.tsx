@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   XAxis, 
@@ -178,6 +179,9 @@ const App: React.FC = () => {
 
   const [insights, setInsights] = useState<string>("");
   const [loadingInsights, setLoadingInsights] = useState<boolean>(false);
+  
+  // PERFORMANCE: Debouncing the heavy chart data to keep inputs "snappy"
+  const [debouncedTimeline, setDebouncedTimeline] = useState<any[]>([]);
 
   const formatNumber = (val: number, decimals: number = 0) => {
     if (isNaN(val) || val === null) return "0";
@@ -221,7 +225,16 @@ const App: React.FC = () => {
     }));
   };
 
+  // Instant results for MetricCards
   const results = useMemo(() => calculateIncentives(state), [state]);
+
+  // Debounced results for the heavy Chart
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedTimeline(results.timeline);
+    }, 150); // 150ms is the sweet spot for "instant" perception without blocking UI
+    return () => clearTimeout(handler);
+  }, [results.timeline]);
 
   const tierResults = useMemo(() => {
     return {
@@ -247,7 +260,7 @@ const App: React.FC = () => {
   const isAggressive = state.marketOptimism > 70;
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 py-8 md:py-12 space-y-10 transition-colors duration-1000 ${isAggressive ? 'aggressive-mode' : ''}`}>
+    <div className={`max-w-7xl mx-auto px-4 py-8 md:py-12 space-y-10 transition-all duration-1000 ${isAggressive ? 'aggressive-mode' : ''}`}>
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -289,7 +302,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 contain-paint">
         <MetricCard label={t.total_investment_power} value={state.investmentUsd} type="currency" glow="white" sub={t.initial_capital} />
         <MetricCard label={t.estimated_profit_power} value={results.totalFutureValue} type="currency" glow="green" sub={t.new_reward_value} />
         <MetricCard label={t.net_profit_power} value={results.totalFutureValue - state.investmentUsd} type="currency" glow="green" sub="Total Net Profit" />
@@ -310,7 +323,7 @@ const App: React.FC = () => {
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-cyan-400/30 transition-all">
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t.token_quantity}</label>
-                  <span className="text-[10px) text-gray-600 font-mono">Q</span>
+                  <span className="text-[10px] text-gray-600 font-mono">Q</span>
                 </div>
                 <input 
                   type="number"
@@ -447,9 +460,9 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="h-[480px] w-full relative z-10">
+            <div className="h-[480px] w-full relative z-10 contain-layout">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={results.timeline} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                <ComposedChart data={debouncedTimeline} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
                   <defs>
                     <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#00f2ff" stopOpacity={0.4}/>
@@ -463,31 +476,24 @@ const App: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                   <XAxis dataKey="week" stroke="#333" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(w) => w % 52 === 0 ? `Y${w/52}` : ''} dy={10} />
                   
-                  {/* Left Axis: Monetary values ($M, $k) */}
                   <YAxis yAxisId="left" stroke="#333" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000000 ? `$${(v/1000000).toFixed(1)}M` : `$${(v/1000).toFixed(0)}k`} />
-                  
-                  {/* Right Axis: Holders */}
                   <YAxis yAxisId="right" orientation="right" stroke="#f97316" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000).toFixed(1)}k`} />
-                  
-                  {/* Third Axis (Implicitly linked): Token Price (Using small scale) */}
                   <YAxis yAxisId="priceAxis" orientation="right" hide />
 
                   <Tooltip content={<ChartTooltip t={t} lang={lang} />} />
                   
-                  <Area yAxisId="left" type="monotone" dataKey="principalValue" stackId="1" stroke="#bc00ff" strokeWidth={3} fill="url(#purpleGrad)" />
-                  <Area yAxisId="left" type="monotone" dataKey="yieldValue" stackId="1" stroke="#00f2ff" strokeWidth={3} fill="url(#cyanGrad)" />
+                  <Area yAxisId="left" isAnimationActive={false} type="monotone" dataKey="principalValue" stackId="1" stroke="#bc00ff" strokeWidth={3} fill="url(#purpleGrad)" />
+                  <Area yAxisId="left" isAnimationActive={false} type="monotone" dataKey="yieldValue" stackId="1" stroke="#00f2ff" strokeWidth={3} fill="url(#cyanGrad)" />
                   
-                  {/* NEW PROJECTED PRICE LINE (Verde Neon) */}
-                  <Line yAxisId="priceAxis" type="monotone" dataKey="tokenPrice" stroke="#00ff00" strokeWidth={4} dot={false} animationDuration={2500} strokeDasharray="5 5" />
-                  
-                  <Line yAxisId="right" type="monotone" dataKey="communityCount" stroke="#f97316" strokeWidth={3} strokeDasharray="8 8" dot={false} animationDuration={2000} />
+                  <Line yAxisId="priceAxis" isAnimationActive={false} type="monotone" dataKey="tokenPrice" stroke="#00ff00" strokeWidth={4} dot={false} strokeDasharray="5 5" />
+                  <Line yAxisId="right" isAnimationActive={false} type="monotone" dataKey="communityCount" stroke="#f97316" strokeWidth={3} strokeDasharray="8 8" dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="glass p-10 rounded-[2.5rem] shadow-lg border border-white/5 space-y-8">
+            <div className="glass p-10 rounded-[2.5rem] shadow-lg border border-white/5 space-y-8 contain-layout">
                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t.capital_allocation}</h4>
                <div className="space-y-6">
                  <AllocationBar label={t.initial_capital} value={results.principalValueInitial} total={results.totalFutureValue} color="bg-white/20" />
@@ -496,7 +502,7 @@ const App: React.FC = () => {
                </div>
             </div>
 
-            <div className={`glass p-10 rounded-[2.5rem] min-h-[220px] transition-all duration-1000 shadow-xl border ${insights ? 'border-cyan-500/30' : 'border-white/5 opacity-40'}`}>
+            <div className={`glass p-10 rounded-[2.5rem] min-h-[220px] transition-all duration-1000 shadow-xl border ${insights ? 'border-cyan-500/30' : 'border-white/5 opacity-40'} contain-content`}>
               <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-6 flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-cyan-400/10 flex items-center justify-center">🧠</span> 
                 {t.strategic_intelligence}
@@ -518,28 +524,39 @@ const App: React.FC = () => {
   );
 };
 
+// Optimized MetricCard with precise requestAnimationFrame control
 const MetricCard = ({ label, value, type, glow, sub }: any) => {
-  const [displayValue, setDisplayValue] = useState(0);
-  const prevValue = useRef(0);
+  const [displayValue, setDisplayValue] = useState(value);
+  const prevValue = useRef(value);
+  const rafId = useRef<number | null>(null);
 
   useEffect(() => {
-    let start = prevValue.current;
-    const duration = 1000; 
+    const start = prevValue.current;
+    const duration = 800; 
     const startTime = performance.now();
 
     const update = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
+      // Easing function for smoother numeric feel (OutExpo)
       const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       const current = start + (value - start) * ease;
+      
       setDisplayValue(current);
+      
       if (progress < 1) {
-        requestAnimationFrame(update);
+        rafId.current = requestAnimationFrame(update);
       } else {
         prevValue.current = value;
       }
     };
-    requestAnimationFrame(update);
+    
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+    rafId.current = requestAnimationFrame(update);
+    
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
   }, [value]);
 
   const colors: any = {
@@ -553,8 +570,8 @@ const MetricCard = ({ label, value, type, glow, sub }: any) => {
     : `$${new Intl.NumberFormat().format(Math.floor(displayValue))}`;
 
   return (
-    <div className={`glass p-6 md:p-8 rounded-[2.5rem] border-b-4 transition-all hover:-translate-y-1 shadow-2xl flex flex-col justify-between ${colors[glow]}`}>
-      <div>
+    <div className={`glass p-6 md:p-8 rounded-[2.5rem] border-b-4 transition-transform hover:-translate-y-1 shadow-2xl flex flex-col justify-between ${colors[glow]} will-change-transform`}>
+      <div className="overflow-hidden">
         <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 opacity-70">{label}</p>
         <h4 className="text-2xl md:text-3xl font-mono font-black tracking-tighter truncate">
           {formattedVal}
@@ -566,7 +583,7 @@ const MetricCard = ({ label, value, type, glow, sub }: any) => {
 };
 
 const TierSelector = ({ active, onClick, label, duration, yieldPct, color }: any) => (
-  <button onClick={onClick} className={`p-4 rounded-2xl border transition-all flex items-center justify-between group overflow-hidden relative ${active ? 'bg-white/10 border-white/30 shadow-2xl scale-[1.03] z-10' : 'bg-transparent border-white/5 opacity-40 hover:opacity-100 hover:scale-[1.01]'}`}>
+  <button onClick={onClick} className={`p-4 rounded-2xl border transition-all flex items-center justify-between group overflow-hidden relative ${active ? 'bg-white/10 border-white/30 shadow-2xl scale-[1.03] z-10' : 'bg-transparent border-white/5 opacity-40 hover:opacity-100 hover:scale-[1.01]'} will-change-transform`}>
     <div className={`absolute inset-0 bg-gradient-to-r ${color} opacity-20`} />
     <div className="relative z-10 flex flex-col items-start">
       <h5 className="font-black text-[10px] text-white uppercase italic tracking-tighter">{label}</h5>
@@ -579,17 +596,20 @@ const TierSelector = ({ active, onClick, label, duration, yieldPct, color }: any
   </button>
 );
 
-const AllocationBar = ({ label, value, total, color }: any) => (
-  <div className="space-y-2">
-    <div className="flex justify-between items-end">
-      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</span>
-      <span className="text-xs font-mono font-bold text-white">{total > 0 ? ((value/total)*100).toFixed(1) : 0}%</span>
+const AllocationBar = ({ label, value, total, color }: any) => {
+  const percentage = total > 0 ? (value/total)*100 : 0;
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-end">
+        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</span>
+        <span className="text-xs font-mono font-bold text-white">{percentage.toFixed(1)}%</span>
+      </div>
+      <div className="w-full bg-black/40 h-3 rounded-full overflow-hidden p-0.5 border border-white/5 shadow-inner">
+        <div className={`${color} h-full rounded-full transition-all duration-700 will-change-[width]`} style={{ width: `${percentage}%` }} />
+      </div>
     </div>
-    <div className="w-full bg-black/40 h-3 rounded-full overflow-hidden p-0.5 border border-white/5 shadow-inner">
-      <div className={`${color} h-full rounded-full transition-all duration-700`} style={{ width: `${total > 0 ? (value/total)*100 : 0}%` }} />
-    </div>
-  </div>
-);
+  );
+};
 
 const LegendItem = ({ color, label, dashed }: any) => (
   <div className="flex items-center gap-2">

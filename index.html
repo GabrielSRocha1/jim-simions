@@ -19,12 +19,26 @@
             min-height: 100vh;
             color: #fff;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
+        
+        /* Performance Optimization: GPU acceleration for containers */
+        .aggressive-mode {
+            background-color: #080300 !important;
+            transition: background-color 1s ease;
+        }
+        
+        .contain-paint { contain: paint; }
+        .contain-layout { contain: layout; }
+        .contain-content { contain: content; }
+
         .glass {
             background: rgba(255, 255, 255, 0.02);
             backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            transform: translateZ(0); /* Force GPU */
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
