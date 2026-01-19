@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   XAxis, 
@@ -227,7 +226,7 @@ const App: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#bc00ff] to-[#00f2ff] flex items-center justify-center shadow-xl shadow-purple-500/20 pulse-glow overflow-hidden p-1">
-              <img src="https://i.ibb.co/GvXMNKym/image.png" alt="Jim Simions Icon" className="w-full h-full object-contain rounded-xl" />
+              <img src="https://i.ibb.co/v6nxsMTQ/image.png" alt="Jim Simions Icon" className="w-full h-full object-contain rounded-xl" />
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic">
               Jim <span className="text-gradient-cyan">Simions</span>
@@ -343,7 +342,6 @@ const App: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
                   <span className="text-[9px] font-bold text-gray-400 uppercase">{t.avg_ticket}</span>
-                  {/* Adicionado pr-6 para dar espaço aos controles nativos do input type number */}
                   <input 
                     type="number" 
                     inputMode="numeric" 
