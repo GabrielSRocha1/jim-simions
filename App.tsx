@@ -12,14 +12,12 @@ import {
 } from 'recharts';
 import { SimulationState, CalculationResult, LockTier } from './types';
 import { calculateIncentives } from './utils/calculations';
-import { getIncentiveInsights } from './services/geminiService';
 
 type Language = 'pt' | 'en' | 'es';
 
 const translations = {
   en: {
     header_subtitle: "Precision Engineering: Converging Rewards & Network Growth.",
-    cta_analyze: "Process Wealth Intelligence",
     cta_future: "LOCK IN PLANNING...",
     params_title: "Negotiation Sniper",
     token_quantity: "Token Quantity (Q)",
@@ -44,12 +42,6 @@ const translations = {
     initial_capital: "Initial Capital (Floor)",
     price_gain: "Market Gain (Price Up)",
     yield_gain: "Protocol Gain (Incentives)",
-    yield_component: "Yield Efficiency",
-    initial_appreciation: "Asset Appreciation",
-    new_reward_value: "Bonus Wealth Generated",
-    strategic_intelligence: "Strategic Engine",
-    click_analyze: "Calculate institutional grade insights",
-    disclaimer: "Simulated projection based on network effect variables.",
     bronze: "Bronze Strategy",
     silver: "Silver Performance",
     gold: "Gold Authority",
@@ -59,7 +51,6 @@ const translations = {
     week: "Wk",
     total_balance: "Projected Portfolio",
     tooltip_month_prefix: "Composition at cycle peak:",
-    formatted_preview: "Reading Precision",
     extreme_bullish: "Extreme Bullish",
     steady_growth: "Steady Growth",
     conservative: "Conservative",
@@ -67,7 +58,6 @@ const translations = {
   },
   pt: {
     header_subtitle: "Engenharia de Precisão: Convergência entre Recompensas e Rede.",
-    cta_analyze: "Processar Inteligência de Riqueza",
     cta_future: "INICIAR PLANEJAMENTO...",
     params_title: "Sniper de Negociação",
     token_quantity: "Quantidade de Tokens (Q)",
@@ -92,12 +82,6 @@ const translations = {
     initial_capital: "Capital Inicial (Floor)",
     price_gain: "Ganho de Mercado (Preço)",
     yield_gain: "Ganho de Protocolo (Incentivos)",
-    yield_component: "Eficiência de Yield",
-    initial_appreciation: "Valorização do Ativo",
-    new_reward_value: "Riqueza de Bônus Gerada",
-    strategic_intelligence: "Inteligência Estratégica",
-    click_analyze: "Calcule insights de nível institucional",
-    disclaimer: "Projeção simulada baseada em variáveis de efeito de rede.",
     bronze: "Bronze Estratégia",
     silver: "Prata Performance",
     gold: "Ouro Autoridade",
@@ -107,7 +91,6 @@ const translations = {
     week: "Sem",
     total_balance: "Portfólio Projetado",
     tooltip_month_prefix: "Composição no pico do ciclo:",
-    formatted_preview: "Leitura de Precisão",
     extreme_bullish: "Extremo Bullish",
     steady_growth: "Crescimento Estável",
     conservative: "Conservador",
@@ -115,7 +98,6 @@ const translations = {
   },
   es: {
     header_subtitle: "Ingeniería de Precisión: Convergencia entre Recompensas y Red.",
-    cta_analyze: "Procesar Ingeniería de Riqueza",
     cta_future: "INICIAR PLANIFICACIÓN...",
     params_title: "Sniper de Negociación",
     token_quantity: "Cantidad de Tokens (Q)",
@@ -140,12 +122,6 @@ const translations = {
     initial_capital: "Capital Inicial (Floor)",
     price_gain: "Ganancia de Mercado (Precio)",
     yield_gain: "Ganancia de Protocolo (Incentivos)",
-    yield_component: "Eficiencia de Yield",
-    initial_appreciation: "Valorización del Activo",
-    new_reward_value: "Riqueza de Bonificación Generada",
-    strategic_intelligence: "Inteligencia Estratégica",
-    click_analyze: "Calcula información de nivel institucional",
-    disclaimer: "Proyección simulada basada en variables de efecto de red.",
     bronze: "Bronce Estrategia",
     silver: "Plata Performance",
     gold: "Oro Autoridad",
@@ -155,7 +131,6 @@ const translations = {
     week: "Sem",
     total_balance: "Cartera Proyectada",
     tooltip_month_prefix: "Composición en el pico del ciclo:",
-    formatted_preview: "Lectura de Precisão",
     extreme_bullish: "Extremo Bullish",
     steady_growth: "Crecimiento Estable",
     conservative: "Conservador",
@@ -177,8 +152,6 @@ const App: React.FC = () => {
     ticketPerRouder: 2500
   });
 
-  const [insights, setInsights] = useState<string>("");
-  const [loadingInsights, setLoadingInsights] = useState<boolean>(false);
   const [debouncedTimeline, setDebouncedTimeline] = useState<any[]>([]);
 
   const formatNumber = (val: number, decimals: number = 0) => {
@@ -240,13 +213,6 @@ const App: React.FC = () => {
     };
   }, [state]);
 
-  const handleFetchInsights = async () => {
-    setLoadingInsights(true);
-    const text = await getIncentiveInsights(state, results);
-    setInsights(text || "Analysis complete.");
-    setLoadingInsights(false);
-  };
-
   const flags: Record<Language, string> = {
     pt: "https://flagcdn.com/w160/br.png",
     en: "https://flagcdn.com/w160/us.png",
@@ -284,17 +250,6 @@ const App: React.FC = () => {
               </button>
             ))}
           </div>
-          <button 
-            onClick={handleFetchInsights}
-            disabled={loadingInsights}
-            className="group relative px-6 py-3 md:px-8 md:py-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all active:scale-95 disabled:opacity-50 overflow-hidden shadow-xl"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative flex items-center gap-3">
-              {loadingInsights ? <div className="w-4 h-4 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" /> : <span className="text-lg group-hover:animate-pulse">✨</span>}
-              <span className="font-black tracking-widest uppercase text-[9px] md:text-[10px]">{t.cta_analyze}</span>
-            </div>
-          </button>
         </div>
       </header>
 
@@ -431,21 +386,20 @@ const App: React.FC = () => {
           </div>
         </aside>
 
-        <main className="lg:col-span-8 space-y-6 md:space-y-8 order-1 lg:order-2">
-          {/* Nova Seção de Nível de Autoridade (Mover daqui de baixo para cima do gráfico) */}
+        <main className="lg:col-span-8 space-y-4 md:space-y-6 order-1 lg:order-2">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
              <TierSelector active={state.lockTier === 'bronze'} onClick={() => setState(s => ({...s, lockTier: 'bronze'}))} label={t.bronze} duration={t.bronze_dur} yieldPct={`${tierResults.bronze.totalRoiPct.toLocaleString(undefined, { maximumFractionDigits: 0 })}%`} color="from-orange-500/20" />
              <TierSelector active={state.lockTier === 'silver'} onClick={() => setState(s => ({...s, lockTier: 'silver'}))} label={t.silver} duration={t.silver_dur} yieldPct={`${tierResults.silver.totalRoiPct.toLocaleString(undefined, { maximumFractionDigits: 0 })}%`} color="from-slate-400/20" />
              <TierSelector active={state.lockTier === 'gold'} onClick={() => setState(s => ({...s, lockTier: 'gold'}))} label={t.gold} duration={t.gold_dur} yieldPct={`${tierResults.gold.totalRoiPct.toLocaleString(undefined, { maximumFractionDigits: 0 })}%`} color="from-yellow-400/20" />
           </div>
 
-          <div className="glass p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] relative overflow-hidden shadow-2xl border border-white/5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8 relative z-10">
+          <div className="glass p-3 md:p-8 rounded-[2rem] md:rounded-[3rem] relative overflow-hidden shadow-2xl border border-white/5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-8 px-2 md:px-0 relative z-10">
               <div className="space-y-1">
-                <h3 className="text-xl md:text-2xl font-black tracking-tighter uppercase italic">{t.growth_chart_title}</h3>
+                <h3 className="text-lg md:text-2xl font-black tracking-tighter uppercase italic">{t.growth_chart_title}</h3>
                 <p className="text-gray-500 text-[8px] md:text-[10px] font-bold uppercase tracking-widest opacity-60">{t.growth_chart_sub}</p>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-2 bg-black/20 p-2 md:p-3 rounded-xl md:rounded-2xl border border-white/5">
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5 bg-black/20 p-2 md:p-3 rounded-xl md:rounded-2xl border border-white/5">
                  <LegendItem color="#bc00ff" label={t.principal_value_label} />
                  <LegendItem color="#00f2ff" label={t.yield_value_label} />
                  <LegendItem color="#00ff00" label={t.token_price_label} />
@@ -453,9 +407,9 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="h-[320px] sm:h-[400px] md:h-[480px] w-full relative z-10 contain-layout">
+            <div className="h-[260px] sm:h-[380px] md:h-[480px] w-full relative z-10 contain-layout">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={debouncedTimeline} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <ComposedChart data={debouncedTimeline} margin={{ top: 10, right: -15, left: -30, bottom: 0 }}>
                   <defs>
                     <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#00f2ff" stopOpacity={0.4}/>
@@ -470,23 +424,23 @@ const App: React.FC = () => {
                   <XAxis 
                     dataKey="week" 
                     stroke="#555" 
-                    fontSize={9} 
+                    fontSize={8} 
                     axisLine={false} 
                     tickLine={false} 
                     tickFormatter={(w) => w % 52 === 0 ? `Y${w/52}` : ''} 
-                    dy={10} 
-                    minTickGap={30}
+                    dy={5} 
+                    minTickGap={20}
                   />
                   
                   <YAxis 
                     yAxisId="left" 
                     stroke="#555" 
-                    fontSize={9} 
+                    fontSize={8} 
                     axisLine={false} 
                     tickLine={false} 
                     tickFormatter={(v) => v >= 1000000 ? `$${(v/1000000).toFixed(1)}M` : v >= 1000 ? `$${(v/1000).toFixed(0)}k` : `$${v}`} 
                   />
-                  <YAxis yAxisId="right" orientation="right" stroke="#f97316" fontSize={8} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#f97316" fontSize={7} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
                   <YAxis yAxisId="priceAxis" orientation="right" hide />
 
                   <Tooltip content={<ChartTooltip t={t} lang={lang} />} cursor={{ stroke: '#ffffff22', strokeWidth: 1 }} />
@@ -494,37 +448,21 @@ const App: React.FC = () => {
                   <Area yAxisId="left" isAnimationActive={false} type="monotone" dataKey="principalValue" stackId="1" stroke="#bc00ff" strokeWidth={2} fill="url(#purpleGrad)" />
                   <Area yAxisId="left" isAnimationActive={false} type="monotone" dataKey="yieldValue" stackId="1" stroke="#00f2ff" strokeWidth={2} fill="url(#cyanGrad)" />
                   
-                  <Line yAxisId="priceAxis" isAnimationActive={false} type="monotone" dataKey="tokenPrice" stroke="#00ff00" strokeWidth={3} dot={false} strokeDasharray="4 4" />
-                  <Line yAxisId="right" isAnimationActive={false} type="monotone" dataKey="communityCount" stroke="#f97316" strokeWidth={2} strokeDasharray="6 6" dot={false} />
+                  <Line yAxisId="priceAxis" isAnimationActive={false} type="monotone" dataKey="tokenPrice" stroke="#00ff00" strokeWidth={2} dot={false} strokeDasharray="3 3" />
+                  <Line yAxisId="right" isAnimationActive={false} type="monotone" dataKey="communityCount" stroke="#f97316" strokeWidth={1.5} strokeDasharray="5 5" dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <div className="glass p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] shadow-lg border border-white/5 space-y-6 md:space-y-8 contain-layout">
-               <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t.capital_allocation}</h4>
-               <div className="space-y-6">
+          <div className="w-full">
+            <div className="glass p-5 md:p-10 rounded-[2rem] md:rounded-[2.5rem] shadow-lg border border-white/5 space-y-6 md:space-y-8 contain-layout">
+               <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t.capital_allocation}</h4>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
                  <AllocationBar label={t.initial_capital} value={results.principalValueInitial} total={results.totalFutureValue} color="bg-white/20" formatter={formatNumber} />
                  <AllocationBar label={t.price_gain} value={results.appreciationGain} total={results.totalFutureValue} color="bg-purple-500 shadow-[0_0_15px_rgba(188,0,255,0.4)]" formatter={formatNumber} />
                  <AllocationBar label={t.yield_gain} value={results.yieldGain} total={results.totalFutureValue} color="bg-cyan-500 shadow-[0_0_20px_rgba(0,242,255,0.4)]" formatter={formatNumber} />
                </div>
-            </div>
-
-            <div className={`glass p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] min-h-[180px] md:min-h-[220px] transition-all duration-1000 shadow-xl border ${insights ? 'border-cyan-500/30' : 'border-white/5 opacity-40'} contain-content`}>
-              <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-6 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-cyan-400/10 flex items-center justify-center">🧠</span> 
-                {t.strategic_intelligence}
-              </h4>
-              {insights ? (
-                <div className="text-[11px] md:text-xs text-gray-200 leading-relaxed font-bold italic overflow-auto max-h-[140px] scrollbar-thin">
-                  "{insights}"
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-gray-600 space-y-3 py-6">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-center opacity-40">{t.click_analyze}</p>
-                </div>
-              )}
             </div>
           </div>
         </main>
@@ -635,7 +573,7 @@ const ChartTooltip = ({ active, payload, label, t, lang }: any) => {
     const formatSmall = (v: number) => new Intl.NumberFormat(lang === 'pt' ? 'pt-BR' : 'en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 4 }).format(v);
     
     return (
-      <div className="glass p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] border-white/20 shadow-2xl space-y-4 md:space-y-5 min-w-[200px] md:min-w-[280px] max-w-[90vw]">
+      <div className="glass p-3 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] border-white/20 shadow-2xl space-y-3 md:space-y-5 min-w-[180px] md:min-w-[280px] max-w-[90vw]">
         <div className="flex justify-between items-center border-b border-white/5 pb-2 md:pb-3">
           <span className="text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">{t.week} {label}</span>
           <span className="text-[8px] md:text-[10px] font-black text-cyan-400 px-2 py-1 rounded bg-cyan-400/10 uppercase italic">{t.total_balance}</span>
@@ -659,7 +597,7 @@ const ChartTooltip = ({ active, payload, label, t, lang }: any) => {
           </div>
         </div>
         <p className="text-[8px] md:text-[9px] text-gray-500 italic text-center opacity-60 uppercase font-black tracking-widest leading-tight">{t.tooltip_month_prefix}</p>
-        <p className="text-lg md:text-xl font-mono font-black text-white text-center">{format(data.totalValue)}</p>
+        <p className="text-base md:text-xl font-mono font-black text-white text-center">{format(data.totalValue)}</p>
       </div>
     );
   }
