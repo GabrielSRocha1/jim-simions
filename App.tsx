@@ -131,7 +131,7 @@ const translations = {
     week: "Sem",
     total_balance: "Cartera Proyectada",
     tooltip_month_prefix: "Composición en el pico del ciclo:",
-    extreme_bullish: "Extremo Bullish",
+    extreme_bullish: "Extreme Bullish",
     steady_growth: "Crecimiento Estable",
     conservative: "Conservador",
     sentiment_hint: "Impulsado por el crecimiento de holders"
@@ -271,6 +271,7 @@ const App: React.FC = () => {
             </div>
             
             <div className="space-y-6">
+              {/* 1. Quantidade de Tokens */}
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-cyan-400/30 transition-all">
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t.token_quantity}</label>
@@ -288,6 +289,28 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* 2. Sentimento de Mercado (Embaixo da Quantidade de Tokens) */}
+              <div className="space-y-4 p-5 rounded-3xl bg-white/5 border border-white/5">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t.market_sentiment}</label>
+                  <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase transition-all duration-500 ${state.marketOptimism > 70 ? 'bg-orange-500/20 text-orange-400' : state.marketOptimism < 30 ? 'bg-white/10 text-gray-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
+                    {state.marketOptimism > 70 ? t.extreme_bullish : state.marketOptimism < 30 ? t.conservative : t.steady_growth}
+                  </span>
+                </div>
+                
+                <div className="relative h-2 bg-black/40 rounded-full overflow-hidden">
+                  <div 
+                    className={`absolute top-0 left-0 h-full transition-all duration-700 ease-out ${state.marketOptimism > 70 ? 'bg-orange-500' : 'bg-cyan-400'}`}
+                    style={{ width: `${state.marketOptimism}%` }}
+                  />
+                </div>
+                
+                <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest italic text-right opacity-60">
+                   {t.sentiment_hint} • {state.marketOptimism.toFixed(1)}%
+                </p>
+              </div>
+
+              {/* 3. Preço de Entrada */}
               <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-cyan-400/30 transition-all">
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t.token_price}</label>
@@ -305,6 +328,33 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* 4. Motor de Comunidade */}
+              <div className="space-y-5 p-5 md:p-6 rounded-2xl md:rounded-3xl bg-black/20 border border-white/5">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🔥</span>
+                  <label className="text-[10px] font-black text-white uppercase tracking-widest">{t.community_dynamics}</label>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase">
+                    <span>{t.new_rouders}</span>
+                    <span className="text-orange-400 font-mono">{state.newRoudersPerMonth}</span>
+                  </div>
+                  <input type="range" min="0" max="2000" step="50" value={state.newRoudersPerMonth} onChange={(e) => handleCommunityGrowthChange(Number(e.target.value))} className="w-full h-2 bg-white/10 rounded-full appearance-none accent-orange-500" />
+                </div>
+                <div className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                  <span className="text-[9px] font-bold text-gray-400 uppercase">{t.avg_ticket}</span>
+                  {/* Adicionado pr-6 para dar espaço aos controles nativos do input type number */}
+                  <input 
+                    type="number" 
+                    inputMode="numeric" 
+                    value={state.ticketPerRouder} 
+                    onChange={(e) => setState(s => ({...s, ticketPerRouder: Number(e.target.value)}))} 
+                    className="bg-transparent text-right font-mono text-xs font-bold text-white w-24 pr-4 focus:outline-none" 
+                  />
+                </div>
+              </div>
+
+              {/* 5. Capital em Operação */}
               <div className="p-6 rounded-2xl md:rounded-3xl bg-white/10 border border-cyan-400/40 group hover:border-cyan-400/60 transition-all shadow-2xl shadow-cyan-400/10 md:scale-[1.02]">
                 <div className="flex justify-between items-center mb-3">
                   <label className="text-[10px] md:text-[11px] font-black text-cyan-400 uppercase tracking-[0.2em]">{t.total_investment}</label>
@@ -338,44 +388,6 @@ const App: React.FC = () => {
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-5 p-5 md:p-6 rounded-2xl md:rounded-3xl bg-black/20 border border-white/5">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🔥</span>
-                  <label className="text-[10px] font-black text-white uppercase tracking-widest">{t.community_dynamics}</label>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase">
-                    <span>{t.new_rouders}</span>
-                    <span className="text-orange-400 font-mono">{state.newRoudersPerMonth}</span>
-                  </div>
-                  <input type="range" min="0" max="2000" step="50" value={state.newRoudersPerMonth} onChange={(e) => handleCommunityGrowthChange(Number(e.target.value))} className="w-full h-2 bg-white/10 rounded-full appearance-none accent-orange-500" />
-                </div>
-                <div className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
-                  <span className="text-[9px] font-bold text-gray-400 uppercase">{t.avg_ticket}</span>
-                  <input type="number" inputMode="numeric" value={state.ticketPerRouder} onChange={(e) => setState(s => ({...s, ticketPerRouder: Number(e.target.value)}))} className="bg-transparent text-right font-mono text-xs font-bold text-white w-20 focus:outline-none" />
-                </div>
-              </div>
-
-              <div className="space-y-4 p-5 rounded-3xl bg-white/5 border border-white/5">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t.market_sentiment}</label>
-                  <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase transition-all duration-500 ${state.marketOptimism > 70 ? 'bg-orange-500/20 text-orange-400' : state.marketOptimism < 30 ? 'bg-white/10 text-gray-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
-                    {state.marketOptimism > 70 ? t.extreme_bullish : state.marketOptimism < 30 ? t.conservative : t.steady_growth}
-                  </span>
-                </div>
-                
-                <div className="relative h-2 bg-black/40 rounded-full overflow-hidden">
-                  <div 
-                    className={`absolute top-0 left-0 h-full transition-all duration-700 ease-out ${state.marketOptimism > 70 ? 'bg-orange-500' : 'bg-cyan-400'}`}
-                    style={{ width: `${state.marketOptimism}%` }}
-                  />
-                </div>
-                
-                <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest italic text-right opacity-60">
-                   {t.sentiment_hint} • {state.marketOptimism.toFixed(1)}%
-                </p>
               </div>
             </div>
 
