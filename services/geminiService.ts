@@ -1,13 +1,11 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { SimulationState, CalculationResult } from "../types";
 
-// Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export async function getIncentiveInsights(state: SimulationState, result: CalculationResult) {
   try {
-    // Fix: Access properties correctly based on SimulationState and CalculationResult types
+    // Inicializar dentro da função garante que o app não quebre se process.env não estiver disponível globalmente no navegador
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
     const expectedPriceChange = ((result.projectedPrice / state.tokenPrice) - 1) * 100;
     const tokenGainPct = (result.yieldTokens / result.initialTokens) * 100;
 
@@ -37,7 +35,6 @@ export async function getIncentiveInsights(state: SimulationState, result: Calcu
       }
     });
 
-    // Use response.text property directly
     return response.text;
   } catch (error) {
     console.error("Gemini Error:", error);
